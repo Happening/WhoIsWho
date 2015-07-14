@@ -6,22 +6,10 @@ exports.onInstall = (config) !->
 	log "WhoIsWho server installed called with:"
 	log JSON.stringify( config )
 
-#Add field settings to the dabase under fields
+#Add field settings to the database under fields
 exports.onConfig = (config) !->
-	log "Config:"
-	log JSON.stringify( config )
-	# data = config.hiddenValue #get bulk info
-	# log "data:"
-	# log JSON.stringify ( data )
-	# config.hiddenValue = null #remove from config, so not to get confused
 
-	# #set the value of all the fields from the config
-	# log "data:"
-	# log JSON.stringify( data )
-	# for k,v of config
-	# 	data[k].value = v
-
-	#write
+	#sets custom fields
 	custom = {}
 	for k,v of config
 		if k.substring(0, 6) is 'custom'
@@ -35,14 +23,14 @@ exports.onConfig = (config) !->
 
 	customId = parseInt config.cId
 	config.cId = null
-	config.type = null
+	config.type = null #annoying side effect
 	
+	#write
 	Db.shared.merge 'fields', config
 	Db.shared.merge 'custom', custom
 	Db.shared.set 'customId', customId
 
-
-	#check if primary has a vlaue
+	#check if primary has a value, if not: set a default.
 	if not Db.shared.peek('fields', 'primary')? or Db.shared.peek('fields', 'primary') is ""
 		Db.shared.set('fields', 'primary', "Describe yourself briefly.")
 

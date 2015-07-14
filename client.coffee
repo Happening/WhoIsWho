@@ -31,7 +31,8 @@ renderHeader = (id) ->
 
 addField = (key, field, input, sep = true) !->
 	userValue = null
-	if not input
+	if !field.value then return
+	if !input
 		id = Page.state.get("?id")
 		userValue = Db.shared.get(id, key)
 		if !userValue? then return
@@ -53,11 +54,8 @@ addField = (key, field, input, sep = true) !->
 					text: field.longText
 					value: Db.shared.get(Plugin.userId(), key)
 					onSave: (val) !->
-						log key
 						d = {}
 						d[key] = val
-						log "---------------"
-						log d
 						Server.sync "saveInfo", d, !->
 							Db.shared.set Plugin.userId(), d
 			else
@@ -75,7 +73,7 @@ renderUser = ->
 		empty = true
 		if Db.shared.peek(id, 'primary')?
 			empty = false
-			addField('primary', {longText: Db.shared.get('fields', 'primary')}, false, false)
+			addField('primary', {longText: Db.shared.get('fields', 'primary'), value: true}, false, false)
 
 		([k,v] for k,v of Db.shared.get('fields')).forEach ([key, field]) !-> #forEach hack
 			if key isnt 'primary'
@@ -96,7 +94,7 @@ renderForm = ->
 
 	# content
 	Dom.section !->
-		addField('primary', {longText: Db.shared.get('fields', 'primary')}, true, false)
+		addField('primary', {longText: Db.shared.get('fields', 'primary'), value: true}, true, false)
 
 		([k,v] for k,v of Db.shared.get('fields')).forEach ([key, field]) !-> #forEach hack
 			if key isnt 'primary'
@@ -130,7 +128,6 @@ renderOverview = ->
 	#Render overview of all users
 	Dom.section !->
 		imgSize = (Page.width()-20) / Math.floor((Page.width()-20)/124)
-		log Page.width() + " - " + imgSize
 
 		Dom.style
 			padding: '3px'
@@ -144,7 +141,6 @@ renderOverview = ->
 				borderRadius: '3px'
 				height: imgSize
 				width: imgSize
-				# position: 'relative'
 
 			'.squareContent':
 				color: '#FFF'
@@ -163,13 +159,11 @@ renderOverview = ->
 						Dom.style
 							height: '100%'
 							width: '100%'
-							# display: 'block'
 							
 						Dom.div !->
 							Dom.style
 								height: '100%'
 								width: '100%'
-								# position: 'absolute'
 								background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%,rgba(0,0,0,0) 60%)'
 								Box: 'vertical bottom left'
 								padding: '5px'
@@ -189,12 +183,10 @@ renderOverview = ->
 									Dom.userText Db.shared.peek(user.key(), 'primary')
 
 					Dom.onTap !->
-						log user.key(), Plugin.userId()
 						if parseInt(user.key()) is Plugin.userId()
 							Page.nav ['form'] #edit yourself
 						else 
 							Page.nav {0:"user", "?id": user.key()} #view other user's details			
-				
 			
 #Settings view.
 exports.renderSettings = !->
@@ -219,11 +211,9 @@ exports.renderSettings = !->
 	#get fieldsOptions from the server if it's there.
 	if Db.shared.get('fields')
 		fieldsOptions = Db.shared.get('fields')
-		log JSON.stringify(fieldsOptions)
 
 	Dom.h5 "Change the information users can provide"
 
-	# Form.box !->
 	Dom.h3 "Primary question:"
 	Form.input
 		name: "primary"
@@ -234,6 +224,8 @@ exports.renderSettings = !->
 
 	fieldsO = Obs.create(fieldsOptions)
 
+	#An input element that holds a hash as value.
+	#Next to that, in implements a checkbox with some custom options.
 	makeComplexCheck = (opts) !->
 		checkE = null
 		divE = null
@@ -271,6 +263,7 @@ exports.renderSettings = !->
 				Form.sep()
 
 
+	#Add default fields
 	fieldsO.iterate (f) !->
 		if f.key() isnt 'primary'
 			makeComplexCheck
@@ -285,14 +278,10 @@ exports.renderSettings = !->
 
 	#custom fields
 	customO = Obs.create Db.shared.get('custom') ? {}
-
-	# Obs.observe !->
 	maxCustoms = Db.shared.get('customId') ? 0
 	customIdH = Form.hidden('cId', maxCustoms)
 
-	log "redoing customO"
 	customO.iterate (c) !->
-		log "iterating over " + c.get('longText')
 		makeComplexCheck
 			text: c.get('longText')
 			name: c.key()
@@ -307,13 +296,10 @@ exports.renderSettings = !->
 	#Add field
 	Dom.div !->
 		Dom.style
-			# color: Plugin.colors().highlight
 			padding: '12px 8px'
 		Dom.text "+ Custom field"
 		
 		addCallback = (value) !->
-			log "commited: "
-			log JSON.stringify( value )
 			++maxCustoms
 			customO.set ('custom' + maxCustoms), {'longText': value[0], 'type': value[1], value:true}
 			customIdH.value(maxCustoms)
@@ -341,7 +327,7 @@ exports.renderSettings = !->
 				addCallback result if okay
 			, [false, 'Cancel', true, 'Add']
 
-# Initial entree point
+# Initial entry point
 exports.render = !->
 	if Page.state.get(0) is 'form' then return renderForm()
 	if Page.state.get(0) is 'user' then return renderUser()
