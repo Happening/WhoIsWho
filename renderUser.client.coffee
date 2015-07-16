@@ -148,8 +148,8 @@ addField = (id, key, field, input, sep = true) !->
 							Dom.text tr("< Add Image >")
 						Icon.render (data: 'camera')
 						Dom.onTap !->
-							if photo
-								renderPhoto photo.key, field.longText, key
+							if dbPhoto
+								renderPhoto dbPhoto.key, field.longText, key
 							else
 								Photo.pick 'camera', [key], id+key
 				else
