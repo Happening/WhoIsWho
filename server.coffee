@@ -1,10 +1,10 @@
 Db = require 'db'
 Plugin = require 'plugin'
+{tr} = require 'i18n'
 
 exports.onInstall = (config) !->
-	# set the counter to 0 on plugin installation
-	log "WhoIsWho server installed called with:"
-	log JSON.stringify( config )
+	#run it through config
+	exports.onConfig(config)
 
 #Add field settings to the database under fields
 exports.onConfig = (config) !->
@@ -32,7 +32,22 @@ exports.onConfig = (config) !->
 
 	#check if primary has a value, if not: set a default.
 	if not Db.shared.peek('fields', 'primary')? or Db.shared.peek('fields', 'primary') is ""
-		Db.shared.set('fields', 'primary', "Describe yourself briefly.")
+		Db.shared.set('fields', 'primary', tr("Describe yourself briefly"))
 
 exports.client_saveInfo = (value) !->
+	#loop over keys, if it is an empty string, apply null so it is removed.
+	#if value is empty, set the entire thing to null
+	empty = true
+	for k,v of value
+		if v.trim() is ""
+			value[k] = null
+		else
+			if k isnt "_MODE_" then empty = false
+	if empty then value = null
 	Db.shared.merge Plugin.userId(), value
+
+exports.onPhoto = (info, key) !->
+	Db.shared.set Plugin.userId(), key, info
+
+exports.client_removePhoto = (key) !->
+	Db.shared.set Plugin.userId(), key, null
