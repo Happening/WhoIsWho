@@ -200,11 +200,11 @@ exports.renderUser = (id)->
 
 			Db.shared.ref('fields').iterate (field) !->
 				if field.key() isnt 'primary'
-					hasContent = hasContent || addField(id, field.key(), field.peek(), false)
+					hasContent = hasContent | addField(id, field.key(), field.peek(), false, hasContent) #use hasCotnent to check if we need a seperator
 			, (field) -> field.get('longText')
 
 			Db.shared.ref('custom').iterate (field) !->
-				hasContent =  hasContent || addField(id, field.key(), field.peek(), false)
+				hasContent =  hasContent | addField(id, field.key(), field.peek(), false)
 			, (field) -> field.get('longText')
 
 			if !hasContent
