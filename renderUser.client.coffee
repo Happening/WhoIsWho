@@ -32,18 +32,20 @@ renderHeader = (id) ->
 				width: '200px'
 				height: '200px'
 				margin: '20px'
+				padding: '10px'
+				borderRadius: '50%'
 			Ui.avatar key,
 				size: 200
 			Dom.div !->
 				Dom.style
 					Box: 'bottom center'
 					position: 'absolute'
-					top: '22px'
+					top: '32px'
 					height: '200px'
 					width: '200px'
 					background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%,rgba(0,0,0,0) 50%)'
 					borderRadius: '50%'
-					padding: '20px'
+					padding: '10px 20px'
 					boxSizing: 'border-box'
 					fontSize: '125%'
 					color: '#fff'
@@ -51,7 +53,8 @@ renderHeader = (id) ->
 					Dom.style
 						textAlign: 'center'
 					Dom.text Form.smileyToEmoji Plugin.userName(id)
-					Icon.render(data: 'info', color: '#fff', style: marginLeft: '10px')
+					Dom.br()
+					Icon.render(data: 'info', color: '#fff', style: marginTop: '6px')
 			Dom.onTap !->
 				Plugin.userInfo id
 
@@ -208,7 +211,7 @@ exports.renderUser = (id)->
 			, (field) -> field.get('longText')
 
 			if !hasContent
-				Dom.userText Form.smileyToEmoji( tr("User has not filled in any information yet :("))
+				Dom.userText Form.smileyToEmoji( tr("User has not filled in any information yet..."))
 		
 exports.renderForm = (id) ->
 	Page.setTitle Plugin.userName(id)

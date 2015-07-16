@@ -13,6 +13,9 @@ exports.onConfig = (config) !->
 	custom = {}
 	for k,v of config
 		if k.substring(0, 6) is 'custom'
+			log v.longText
+			log JSON.stringify(v)
+			v.longText = v.longText.charAt(0).toUpperCase()+v.longText.substr(1)
 			if v.value isnt 'delete'
 				custom[k] = v
 				custom[k].value = true
