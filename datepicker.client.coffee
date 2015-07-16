@@ -110,10 +110,10 @@ exports.date = date = (opts) ->
 			Dom.onTap !->
 				m = month.peek()+dir
 				if m<1
-					m = 12
+					m = m+12
 					year.set year.peek()-1
 				else if m>12
-					m = 1
+					m = m-12
 					year.set year.peek()+1
 				month.set m
 
@@ -123,9 +123,20 @@ exports.date = date = (opts) ->
 			Dom.style Box: "middle center"
 			renderArrow -1
 			Dom.div !->
-				Dom.style textAlign: 'center', fontWeight: 'bold', color: Colors.highlight, padding: '0 15px', minWidth: '25%'
-				Dom.text monthNames[month.get()-1]+' '+year.get()
+				Dom.style textAlign: 'center', fontWeight: 'bold', color: Colors.highlight, padding: '0 15px', minWidth: '12%'
+				if opts.year
+					Dom.text monthNames[month.get()-1]
+				else
+					Dom.text monthNames[month.get()-1]+' '+year.get()
 			renderArrow 1
+			if opts.year
+				Dom.div !->
+					Dom.style width: '2%'
+				renderArrow -12
+				Dom.div !->
+					Dom.style textAlign: 'center', fontWeight: 'bold', color: Colors.highlight, padding: '0 15px', minWidth: '12%'
+					Dom.text year.get()
+				renderArrow 12
 		Dom.css
 			"td,th":
 				padding: "6px 0"

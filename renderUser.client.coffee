@@ -116,6 +116,7 @@ addField = (id, key, field, input, sep = true) !->
 							Modal.confirm tr("Select date"), !->
 								Datepicker.date
 									value: val
+									year: true
 									onChange: (v) !->
 										val = v
 							, !->
