@@ -77,12 +77,12 @@ getUploading = (id, photoKey) ->
 		for key, upload of uploads
 			return upload if upload.localId is id + photoKey
 
-addField = (id, key, field, input, sep = true) !->
+addField = (id, key, field, input, sep = true) ->
 	userValue = null
-	if !field.value then return
+	if !field.value then return false
 	if !input
 		userValue = Db.shared.get(id, key)
-		if !userValue? then return
+		if !userValue? then return false
 
 	if sep then Form.sep()
 	Dom.div !->
@@ -180,6 +180,7 @@ addField = (id, key, field, input, sep = true) !->
 							renderPhoto userValue.key, field.longText
 				else
 					Dom.userText Form.smileyToEmoji userValue
+	return true
 
 exports.renderUser = (id)->
 	Page.setTitle Plugin.userName(id)
@@ -191,22 +192,24 @@ exports.renderUser = (id)->
 	#content
 	Dom.section !->
 		Obs.observe !->
-			empty = !Db.shared.get(id)?
-			if empty
+			Db.shared.get(id) #react on user content change
+			Db.shared.get('fields') #react on field change
+			Db.shared.get('custom') #react on custom change
+			hasContent = false
+			hasContent = addField(id, 'primary', {longText: Db.shared.get('fields', 'primary'), value: true}, false, false)
+
+			Db.shared.ref('fields').iterate (field) !->
+				if field.key() isnt 'primary'
+					hasContent = hasContent || addField(id, field.key(), field.peek(), false)
+			, (field) -> field.get('longText')
+
+			Db.shared.ref('custom').iterate (field) !->
+				hasContent =  hasContent || addField(id, field.key(), field.peek(), false)
+			, (field) -> field.get('longText')
+
+			if !hasContent
 				Dom.userText Form.smileyToEmoji( tr("User has not filled in any information yet :("))
-				return
-		if Db.shared.peek(id, 'primary')?
-			empty = false
-			addField(id, 'primary', {longText: Db.shared.get('fields', 'primary'), value: true}, false, false)
-
-		([k,v] for k,v of Db.shared.get('fields')).forEach ([key, field]) !-> #forEach hack
-			if key isnt 'primary'
-				addField(id, key, field, false)
-
-		([k,v] for k,v of Db.shared.get('custom')).forEach ([key, field]) !-> #forEach hack
-			empty = false
-			addField(id, key, field, false)
-
+		
 exports.renderForm = (id) ->
 	Page.setTitle Plugin.userName(id)
 	Dom.style padding: '0px'
@@ -215,14 +218,21 @@ exports.renderForm = (id) ->
 
 	# content
 	Dom.section !->
-		addField(id, 'primary', {longText: Db.shared.get('fields', 'primary'), value: true}, true, false)
+		Obs.observe !->
+			Db.shared.get(id) #react on user content change
+			Db.shared.get('fields') #react on field change
+			Db.shared.get('custom') #react on custom change
+			
+			addField(id, 'primary', {longText: Db.shared.get('fields', 'primary'), value: true}, true, false)
 
-		([k,v] for k,v of Db.shared.get('fields')).forEach ([key, field]) !-> #forEach hack
-			if key isnt 'primary'
-				addField(id, key, field, true)
+			Db.shared.ref('fields').iterate (field) !->
+				if field.key() isnt 'primary'
+					addField(id, field.key(), field.peek(), true)
+			, (field) -> field.get('longText')
 
-		([k,v] for k,v of Db.shared.get('custom')).forEach ([key, field]) !->
-			addField(id, key, field, true)
+			Db.shared.ref('custom').iterate (field) !->
+				addField(id, field.key(), field.peek(), true)
+			, (field) -> field.get('longText')
 
 	Form.setPageSubmit (value) !->
 		Server.sync 'saveInfo', value, !->

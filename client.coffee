@@ -116,6 +116,7 @@ exports.renderSettings = !->
 					longText: f.get('longText')
 					type: f.get('type')
 			Form.sep()
+	, (field) -> field.get('longText')
 
 	#custom fields
 	customO = Obs.create if Db.shared?.peek('custom') then Db.shared?.peek('custom') else {}
@@ -133,6 +134,7 @@ exports.renderSettings = !->
 			value: 
 				longText: c.get('longText')
 				type: c.get('type')
+	, (field) -> field.get('longText')
 
 	#Add field
 	Dom.div !->
@@ -210,4 +212,6 @@ renderOverview = ->
 				if parseInt(user.key()) is Plugin.userId()
 					Page.nav ['form'] #edit yourself
 				else 
-					Page.nav {0:user.key()} #view other user's details  
+					Page.nav {0:user.key()} #view other user's details 
+	, (user) -> user.get('name')
+	# if query.get('status') is 2 or isMod then -reply.get 'votes' else r.randn()

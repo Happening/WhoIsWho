@@ -36,14 +36,8 @@ exports.onConfig = (config) !->
 
 exports.client_saveInfo = (value) !->
 	#loop over keys, if it is an empty string, apply null so it is removed.
-	#if value is empty, set the entire thing to null
-	empty = true
 	for k,v of value
-		if v.trim() is ""
-			value[k] = null
-		else
-			if k isnt "_MODE_" then empty = false
-	if empty then value = null
+		if v.trim() is "" then value[k] = null
 	Db.shared.merge Plugin.userId(), value
 
 exports.onPhoto = (info, key) !->
